@@ -1,0 +1,30 @@
+@import url(https://fonts.googleapis.com/css?family=Dosis:700);
+
+
+.label{
+    font-family: "Dosis", Helvetica, Arial, sans-serif; 
+    font-size: 14px;
+    font-weight: 400;
+    alignment-baseline: middle;
+}
+
+.label-rotate {
+    transform: rotate(15deg);
+}
+
+.genre-popularity-label {
+    font-size: 16px;
+}
+
+.container{
+    display: flex;
+    justify-content: center;
+    margin: 10px auto;
+}
+
+.selected-genre{
+    position: relative;
+    font-size: 18px;
+    top: 53%;
+    left: -30%;
+}
