@@ -1,7 +1,7 @@
-import { popularityDataParser, genresPopularityParser } from '../src/Utilities/csv-parsers.js';
-import { loadCsv } from '../src/data.js';
-import { RadialChart } from '../src/Charts/RadialChart.js';
-import { BarChart } from '../src/Charts/BarChart.js';
+import { popularityDataParser, genresPopularityParser } from './Utilities/csv-parsers.js';
+import { loadCsv } from './data.js';
+import { RadialChart } from './Charts/RadialChart.js';
+import { BarChart } from './Charts/BarChart.js';
 import { filterByPopularity, filterByGenre } from './Utilities/filters.js'
 
 // ---------------------------------------------------------------------
