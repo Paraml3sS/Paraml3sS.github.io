@@ -1,31 +1,46 @@
-export const radialChart = (selection, props) => {
+export const RadialChart = (selection, props) => {
     const {
         margin,
         innerRadius,
         outerRadius,
         width,
-        height
+        height,
+        conditional
     } = props;
 
-    // Axes
-    let xScale;
-    let yScale;
+
+    let xScale, yScale, svg, chart, labels;
 
 
-    const svg = d3.select(selection)
-        .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", "translate(" + width / 10 + "," + (height / 2.7 + 100) + ")");
 
-    const chart = svg
-        .append("g")
-        .attr("class", "chart");
+    const render = (data) => {
+        xScale = d3.scaleBand()
+            .range([0, 1 * Math.PI])
+            .domain(data.map(d => d.characteristic));
 
-    const labels = svg
-        .append("g")
-        .attr("class", "labels");
+        yScale = d3.scaleRadial()
+            .range([innerRadius, outerRadius])
+            .domain([0, 1]);
+
+        svg = d3.select(selection)
+            .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + width / 10 + "," + (height / 2.7 + 100) + ")");
+
+        chart = svg
+            .append("g")
+            .attr("class", "chart");
+
+        labels = svg
+            .append("g")
+            .attr("class", "labels");
+
+        buildChart(data);
+        buildLabels(data);
+    }
+
 
 
     const update = (data) => {
@@ -46,9 +61,10 @@ export const radialChart = (selection, props) => {
             .append("path")
             .merge(uc)
             .transition().duration(1500)
-
             .attr("class", "path")
-            .attr("fill", "#69b3a2")
+            .attr("fill", d => (d.power > 0.6 && conditional)
+                ? "red"
+                : "#bdc3c7")
             .attr("d", d3.arc()
                 .innerRadius(innerRadius)
                 .outerRadius((d) => d['power'] < 0.01
@@ -73,7 +89,6 @@ export const radialChart = (selection, props) => {
             .selectAll("g")
             .data(data, d => d.characteristic);
 
-
         ul
             .enter()
             .append("g")
@@ -83,7 +98,6 @@ export const radialChart = (selection, props) => {
             .transition().duration(1500)
             .attr("transform", d =>
                 "rotate(" + ((xScale(d.characteristic) + xScale.bandwidth() / 2) * 180 / Math.PI - 90) + ")" + "translate(" + (yScale(d['power']) + 10) + ",0)")
-
 
         ul.exit().remove();
     }
@@ -97,29 +111,19 @@ export const radialChart = (selection, props) => {
             .enter()
             .append("text")
             .merge(ult)
+            .style("font-size", d => (d.power > 0.6 && conditional)
+                ? "1.2em"
+                : "14px")
             .transition().duration(1500)
-            .attr("class", "label")
             .text(d => d.characteristic);
 
         ult.exit().remove();
 
     }
 
-    const init = (data) => {
-        xScale = d3.scaleBand()
-            .range([0, 1 * Math.PI])
-            .domain(data.map(d => d.characteristic));
-
-        yScale = d3.scaleRadial()
-            .range([innerRadius, outerRadius])
-            .domain([0, 1]);
-
-        buildChart(data);
-        buildLabels(data);
-    }
 
 
-
+    // To do - rewrite with joins as in the bar chart.
     const buildChart = (data) => {
         chart
             .selectAll("path")
@@ -127,7 +131,9 @@ export const radialChart = (selection, props) => {
             .enter()
             .append("path")
             .attr("class", "path")
-            .attr("fill", "#69b3a2")
+            .attr("fill", d => (d.power > 0.6 && conditional)
+                ? "red"
+                : "#bdc3c7")
             .attr("d", d3.arc()
                 .innerRadius(innerRadius)
                 .outerRadius((d) => d['power'] < 0.01
@@ -151,11 +157,47 @@ export const radialChart = (selection, props) => {
                 "rotate(" + ((xScale(d.characteristic) + xScale.bandwidth() / 2) * 180 / Math.PI - 90) + ")" + "translate(" + (yScale(d['power']) + 10) + ",0)")
             .append("text")
             .attr("class", "label")
+            .style("font-size", d => (d.power > 0.6 && conditional)
+                ? "1.2em"
+                : "14px")
             .text(d => d.characteristic);
+
+        let circles = [0.25, 0.5, 0.75, 1];
+
+        const legendCircles = svg.append("g").attr("class", "axis");
+
+        legendCircles
+            .selectAll("path")
+            .data(circles)
+            .enter()
+            .append("path")
+            .attr("fill", "steelblue")
+            .attr("d", d3.arc()
+                .innerRadius(d => yScale(d) - 1)
+                .outerRadius(d => yScale(d))
+                .startAngle(0)
+                .endAngle(2 * Math.PI / 2))
+            .style("opacity", 0.5);
+
+        legendCircles
+            .selectAll("text")
+            .data(circles)
+            .enter()
+            .append("text")
+            .attr("x", -30)
+            .attr("y", d => -yScale(d))
+            .attr("dy", "0.35em")
+            .attr("stroke", "#fff")
+            .attr("stroke-width", 5)
+            .text(d => d3.format(".0%")(d))
+            .attr("font-size", "13px")
+            .clone(true)
+            .attr("fill", "#000")
+            .attr("stroke", "none")
     }
 
 
     return {
-        init, update
+        render, update
     };
 };
